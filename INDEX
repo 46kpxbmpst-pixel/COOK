@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mein Kochbuch – Dark UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-elevated: #101114;
+      --bg-elevated-soft: #15161a;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --accent: #22c55e;
+      --chip-bg: #18181b;
+      --chip-bg-active: #1e293b;
+      --border-subtle: #27272f;
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+      color: var(--text);
+    }
+
+    .phone {
+      background: var(--bg);
+      width: 100%;
+      max-width: 430px;
+      min-height: 90vh;
+      border-radius: 32px;
+      padding: 18px 16px 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .search-wrapper {
+      background: var(--bg-elevated);
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .search-wrapper span {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .search-input {
+      border: none;
+      outline: none;
+      background: transparent;
+      flex: 1;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .chips-row {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 8px;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--chip-bg);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.85rem;
+      white-space: nowrap;
+      color: var(--text-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .chip.active {
+      color: var(--text);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+    }
+
+    .recipes {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+        .recipe-card {
+      background: var(--bg-elevated-soft);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out,
+        border-color 0.08s ease-out;
+    }
+
+    .recipe-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      border-color: rgba(248, 250, 252, 0.12);
+    }
+
+    .recipe-card.large {
+      margin-bottom: 4px;
+    }
+
+    .recipe-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .recipe-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .recipe-note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .add-note {
+      margin-top: 6px;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 14px;
+    }
+
+    .add-note input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+        .add-note input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Detail-Overlay */
+    .detail-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .detail-panel {
+      background: var(--bg-elevated-soft);
+      width: 100%;
+      max-width: 430px;
+      border-radius: 24px 24px 0 0;
+      padding: 16px 18px 24px;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
+      max-height: 82vh;
+      overflow-y: auto;
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .detail-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .detail-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 999px;
+    }
+
+    .detail-close:hover {
+      background: rgba(148, 163, 184, 0.12);
+    }
+
+    .detail-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .detail-note {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .detail-section-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+
+    .detail-list {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      padding-left: 1.2rem;
+      margin-bottom: 6px;
+    }
+
+    .detail-list li {
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="content">
+
+      <div class="search-wrapper">
+        <span>🔍</span>
+        <input class="search-input" type="text" placeholder="Rezepte oder Zutaten suchen…" />
+      </div>
+
+            <div class="chips-row" id="chipsRow"></div>
+
+            <main class="recipes">
+        <div id="featuredRecipe"></div>
+        <div class="recipe-grid" id="recipeGrid"></div>
+      </main>
+
+      <div class="add-note">
+        <input type="text" placeholder="Eine Notiz hinzufügen…" />
+      </div>
+
+        </div>
+  </div>
+
+  <div class="detail-backdrop" id="detailBackdrop">
+    <div class="detail-panel">
+      <div class="detail-header">
+        <h2 class="detail-title" id="detailTitle"></h2>
+        <button class="detail-close" id="detailClose" aria-label="Schließen">✕</button>
+      </div>
+      <p class="detail-meta" id="detailMeta"></p>
+      <p class="detail-note" id="detailNote"></p>
+      <h3 class="detail-section-title">Zutaten</h3>
+      <ul class="detail-list" id="detailIngredients"></ul>
+      <h3 class="detail-section-title">Zubereitung</h3>
+      <ol class="detail-list" id="detailSteps"></ol>
+    </div>
+  </div>
+
+  <script>
+    const cookbookData = {
+      categories: [
+        "Suppe",
+        "Fleisch",
+        "Herzhaft",
+        "Gemüse & Herzhaft",
+        "Dessert"
+      ],
+      recipes: [
+        {
+          id: "spaghetti-aglio-e-olio",
+          title: "Spaghetti Aglio e Olio",
+          category: "Herzhaft",
+          durationMinutes: 20,
+          type: "Pasta",
+          tags: ["vegetarisch", "schnell"],
+          shortNote: "Geht super schnell, viel Knoblauch!",
+          ingredients: [
+            "200 g Spaghetti",
+            "3 Zehen Knoblauch",
+            "3 EL Olivenöl",
+            "1 Prise Chiliflocken",
+            "Salz",
+            "Etwas Petersilie, gehackt"
+          ],
+          steps: [
+            "Spaghetti in reichlich Salzwasser al dente kochen.",
+            "Knoblauch in feine Scheiben schneiden.",
+            "Olivenöl in einer Pfanne erhitzen und Knoblauch darin bei mittlerer Hitze leicht anbraten.",
+            "Chiliflocken hinzufügen und kurz mitrösten (nicht zu dunkel werden lassen).",
+            "Spaghetti abgießen, etwas Kochwasser auffangen und die Nudeln mit dem Knoblauchöl mischen.",
+            "Mit etwas Nudelwasser cremig machen, mit Petersilie bestreuen und sofort servieren."
+          ]
+        },
+        {
+          id: "gemuese-curry",
+          title: "Gemüse-Curry",
+          category: "Gemüse & Herzhaft",
+          durationMinutes: 40,
+          type: "Hauptgericht",
+          tags: ["scharf", "vegan"],
+          shortNote: "Cremig & scharf.",
+          ingredients: [],
+          steps: []
+        },
+        {
+          id: "tomatensuppe",
+          title: "Tomatensuppe",
+          category: "Suppe",
+          durationMinutes: 25,
+          type: "Suppe",
+          tags: ["einfach"],
+          shortNote: "Perfekt für kalte Tage.",
+          ingredients: [],
+          steps: []
+        },
+        {
+          id: "schokoladenkuchen",
+          title: "Schokoladenkuchen",
+          category: "Dessert",
+          durationMinutes: 70,
+          type: "Dessert",
+          tags: ["backen"],
+          shortNote: "Innen schön saftig.",
+          ingredients: [],
+          steps: []
+        }
+      ]
+    };
+
+    function openRecipeDetail(recipe) {
+      const backdrop = document.getElementById("detailBackdrop");
+      const titleEl = document.getElementById("detailTitle");
+      const metaEl = document.getElementById("detailMeta");
+      const noteEl = document.getElementById("detailNote");
+      const ingredientsEl = document.getElementById("detailIngredients");
+      const stepsEl = document.getElementById("detailSteps");
+
+      if (!backdrop || !titleEl || !metaEl || !noteEl || !ingredientsEl || !stepsEl) return;
+
+      const tagsText = recipe.tags && recipe.tags.length
+        ? " · " + recipe.tags.join(", ")
+        : "";
+
+      titleEl.textContent = recipe.title;
+      metaEl.textContent = `${recipe.durationMinutes} Min · ${recipe.type}${tagsText}`;
+      noteEl.textContent = recipe.shortNote || "";
+
+      ingredientsEl.innerHTML = "";
+      if (recipe.ingredients && recipe.ingredients.length) {
+        recipe.ingredients.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          ingredientsEl.appendChild(li);
+        });
+      } else {
+        const li = document.createElement("li");
+        li.textContent = "Keine Zutaten hinterlegt.";
+        ingredientsEl.appendChild(li);
+      }
+
+      stepsEl.innerHTML = "";
+      if (recipe.steps && recipe.steps.length) {
+        recipe.steps.forEach((step) => {
+          const li = document.createElement("li");
+          li.textContent = step;
+          stepsEl.appendChild(li);
+        });
+      } else {
+        const li = document.createElement("li");
+        li.textContent = "Keine Zubereitungsschritte hinterlegt.";
+        stepsEl.appendChild(li);
+      }
+
+      backdrop.style.display = "flex";
+    }
+
+    function closeRecipeDetail() {
+      const backdrop = document.getElementById("detailBackdrop");
+      if (!backdrop) return;
+      backdrop.style.display = "none";
+    }
+
+    function createRecipeCard(recipe, isLarge) {
+      const card = document.createElement("article");
+      card.className = "recipe-card" + (isLarge ? " large" : "");
+
+      const tagsText = recipe.tags && recipe.tags.length
+        ? " · " + recipe.tags.join(", ")
+        : "";
+
+      card.innerHTML = `
+        <h2 class="recipe-title">${recipe.title}</h2>
+        <p class="recipe-meta">${recipe.durationMinutes} Min · ${recipe.type}${tagsText}</p>
+        <p class="recipe-note">${recipe.shortNote || ""}</p>
+      `;
+
+      card.addEventListener("click", () => openRecipeDetail(recipe));
+
+      return card;
+    }
+
+    function renderRecipes(filterCategory) {
+      const featuredContainer = document.getElementById("featuredRecipe");
+      const gridContainer = document.getElementById("recipeGrid");
+
+      if (!featuredContainer || !gridContainer) return;
+
+      let recipes = cookbookData.recipes.slice();
+      if (filterCategory) {
+        recipes = recipes.filter((r) => r.category === filterCategory);
+      }
+
+      featuredContainer.innerHTML = "";
+      gridContainer.innerHTML = "";
+
+      if (!recipes.length) {
+        featuredContainer.innerHTML = '<p class="recipe-note">Keine Rezepte in dieser Kategorie.</p>';
+        return;
+      }
+
+      const [first, ...rest] = recipes;
+      featuredContainer.appendChild(createRecipeCard(first, true));
+      rest.forEach((recipe) => {
+        gridContainer.appendChild(createRecipeCard(recipe, false));
+      });
+    }
+
+    function renderChips() {
+      const chipsRow = document.getElementById("chipsRow");
+      if (!chipsRow) return;
+
+      chipsRow.innerHTML = "";
+
+      // "Alle" Chip einfügen
+      const allBtn = document.createElement("button");
+      allBtn.className = "chip active";
+      allBtn.textContent = "Alle";
+      allBtn.addEventListener("click", () => {
+        document.querySelectorAll(".chip").forEach((chip) =>
+          chip.classList.remove("active")
+        );
+        allBtn.classList.add("active");
+        renderRecipes(null);
+      });
+      chipsRow.appendChild(allBtn);
+
+      // Restliche Kategorie-Chips
+      cookbookData.categories.forEach((category) => {
+        const btn = document.createElement("button");
+        btn.className = "chip";
+        btn.textContent = category;
+
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".chip").forEach((chip) =>
+            chip.classList.remove("active")
+          );
+          btn.classList.add("active");
+          renderRecipes(category);
+        });
+
+        chipsRow.appendChild(btn);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderChips();
+      renderRecipes(null);
+
+      const backdrop = document.getElementById("detailBackdrop");
+      const closeBtn = document.getElementById("detailClose");
+
+      if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+          closeRecipeDetail();
+        });
+      }
+
+      if (backdrop) {
+        backdrop.addEventListener("click", (event) => {
+          if (event.target === backdrop) {
+            closeRecipeDetail();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
